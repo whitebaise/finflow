@@ -3,10 +3,10 @@
 import { ChevronDown, Undo2 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { formatDateTime, formatYuan, type LedgerRecord, ME, memberById } from '@/lib/ledger'
+import { formatDateTime, formatYuan, type LedgerRecord } from '@/lib/ledger'
 import { RecordRow, recorderText } from './record-row'
 import { EmptyRecords } from './room-personal'
-import { useLedger } from './store'
+import { useRoom } from './store'
 import { Card } from './ui'
 
 type Filter = 'all' | 'mine' | 'revoked'
@@ -18,17 +18,18 @@ const FILTERS: { id: Filter; label: string }[] = [
 ]
 
 export function LedgerPage() {
-  const { records } = useLedger()
+  const { room, me } = useRoom()
+  const records = room.records
   const [filter, setFilter] = useState<Filter>('all')
   const [expanded, setExpanded] = useState<string | null>(null)
 
   const sorted = [...records].reverse()
   const list = sorted.filter((r) =>
-    filter === 'all' ? true : filter === 'mine' ? r.from === ME || r.to === ME : Boolean(r.revoked),
+    filter === 'all' ? true : filter === 'mine' ? r.from === me || r.to === me : Boolean(r.revoked),
   )
   const counts: Record<Filter, number> = {
     all: records.length,
-    mine: records.filter((r) => r.from === ME || r.to === ME).length,
+    mine: records.filter((r) => r.from === me || r.to === me).length,
     revoked: records.filter((r) => r.revoked).length,
   }
   const activeTotal = records.filter((r) => !r.revoked).reduce((s, r) => s + r.amount, 0)
@@ -77,7 +78,17 @@ export function LedgerPage() {
 }
 
 function LedgerItem({ record, open, onToggle }: { record: LedgerRecord; open: boolean; onToggle: () => void }) {
-  const { revoke, locked, showToast } = useLedger()
+  const { revoke, canRevoke, room, nameOf, showToast: showToastFn } = useRoom()
+  const revocable = canRevoke(record)
+  const blockedReason = record.revoked
+    ? null
+    : room.status !== 'playing'
+      ? '牌局已结束，流水已锁定'
+      : room.frozen
+        ? '房间已冻结，暂不能撤销'
+        : !revocable
+          ? '普通成员只能撤销自己记录的流水'
+          : null
   const [confirming, setConfirming] = useState(false)
   const detailId = `detail-${record.id}`
 
@@ -100,26 +111,27 @@ function LedgerItem({ record, open, onToggle }: { record: LedgerRecord; open: bo
         <div id={detailId} className="mx-3 mb-3 rounded-xl bg-muted p-3">
           <dl className="grid grid-cols-[72px_1fr] gap-y-1.5 text-[13px]">
             <dt className="text-muted-foreground">方向</dt>
-            <dd>{`${memberById(record.from).name} 转给 ${memberById(record.to).name}`}</dd>
+            <dd>{`${nameOf(record.from)} 转给 ${nameOf(record.to)}`}</dd>
             <dt className="text-muted-foreground">金额</dt>
             <dd className="font-semibold tabular-nums">¥{formatYuan(record.amount)}</dd>
             <dt className="text-muted-foreground">记录方式</dt>
             <dd>{record.mode === 'proxy' ? '主记台代记' : '个人记账'}</dd>
             <dt className="text-muted-foreground">记录人</dt>
-            <dd>{recorderText(record)}</dd>
+            <dd>{recorderText(record, nameOf)}</dd>
             <dt className="text-muted-foreground">时间</dt>
             <dd className="tabular-nums">{formatDateTime(record.createdAt)}</dd>
             <dt className="text-muted-foreground">状态</dt>
             <dd>
               {record.revoked
-                ? `已撤销（${memberById(record.revoked.by).name} · ${formatDateTime(record.revoked.at)}）`
+                ? `已撤销（${nameOf(record.revoked.by)} · ${formatDateTime(record.revoked.at)}）`
                 : '有效，计入净额'}
             </dd>
             <dt className="text-muted-foreground">编号</dt>
             <dd className="font-mono text-xs leading-5 text-muted-foreground">{record.id.toUpperCase()}</dd>
           </dl>
 
-          {!record.revoked &&
+          {blockedReason && <p className="mt-3 text-center text-xs text-muted-foreground">{blockedReason}</p>}
+          {revocable &&
             (confirming ? (
               <div className="mt-3 rounded-lg border border-destructive/25 bg-card p-3" role="alert">
                 <p className="text-[13px] leading-relaxed">撤销后这笔不再计入净额，原记录仍会保留并标注「已撤销」。</p>
@@ -132,7 +144,7 @@ function LedgerItem({ record, open, onToggle }: { record: LedgerRecord; open: bo
                     onClick={() => {
                       revoke(record.id)
                       setConfirming(false)
-                      showToast('已撤销，原记录已保留')
+                      showToastFn('已撤销，原记录已保留')
                     }}
                     className="h-11 rounded-xl bg-destructive text-[14px] font-semibold text-white active:opacity-85"
                   >
@@ -143,7 +155,7 @@ function LedgerItem({ record, open, onToggle }: { record: LedgerRecord; open: bo
             ) : (
               <button
                 type="button"
-                onClick={() => (locked ? showToast('房间已冻结或已结束，不能撤销') : setConfirming(true))}
+                onClick={() => setConfirming(true)}
                 className="mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-card text-[14px] font-medium text-destructive active:bg-muted"
               >
                 <Undo2 className="size-4" aria-hidden="true" />

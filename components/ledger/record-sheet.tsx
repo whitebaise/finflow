@@ -1,16 +1,17 @@
 'use client'
 
 import { AlertTriangle, ArrowRight, Info, WifiOff } from 'lucide-react'
-import { useState } from 'react'
-import { formatTime, formatYuan, type LedgerRecord, ME, memberById, type MemberId, parseAmount } from '@/lib/ledger'
+import { useRef, useState } from 'react'
+import { formatTime, formatYuan, type LedgerRecord, type MemberId, parseAmount } from '@/lib/ledger'
 import { AmountField } from './amount-field'
 import { BottomSheet } from './bottom-sheet'
-import { useLedger } from './store'
+import { newKey, useRoom } from './store'
 import { Avatar, PrimaryButton } from './ui'
 
 export function RecordSheet({ toId, onClose }: { toId: MemberId | null; onClose: () => void }) {
+  const { nameOf } = useRoom()
   return (
-    <BottomSheet open={toId !== null} onClose={onClose} title={toId ? `记给${memberById(toId).name}` : '记账'}>
+    <BottomSheet open={toId !== null} onClose={onClose} title={toId ? `记给${nameOf(toId)}` : '记账'}>
       {toId && <RecordForm key={toId} toId={toId} onDone={onClose} />}
     </BottomSheet>
   )
@@ -19,26 +20,31 @@ export function RecordSheet({ toId, onClose }: { toId: MemberId | null; onClose:
 type Phase = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'failed' } | { kind: 'duplicate'; matches: LedgerRecord[] }
 
 function RecordForm({ toId, onDone }: { toId: MemberId; onDone: () => void }) {
-  const { submit, showToast, locked } = useLedger()
+  const { submit, showToast, locked, me, member, nameOf } = useRoom()
   const [value, setValue] = useState('')
   const [touched, setTouched] = useState(false)
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
+  // One idempotency key per (amount) attempt: retries of the same entry can never double-record.
+  const attempt = useRef<{ key: string; cents: number } | null>(null)
   const cents = parseAmount(value)
   const invalid = touched && value !== '' && cents === null
-  const to = memberById(toId)
+  const toName = nameOf(toId)
 
   async function handleSubmit(allowDuplicate = false) {
     setTouched(true)
-    if (!cents) return
+    if (!cents || phase.kind === 'submitting') return
+    if (!attempt.current || attempt.current.cents !== cents) attempt.current = { key: newKey(), cents }
     setPhase({ kind: 'submitting' })
-    const res = await submit([{ from: ME, to: toId, amount: cents }], 'self', { allowDuplicate })
+    const res = await submit([{ key: attempt.current.key, from: me, to: toId, amount: cents }], 'self', { allowDuplicate })
     if (res.ok) {
-      showToast(`已记录：我 → ${to.name} ¥${formatYuan(cents)}`)
+      showToast(`已记录：我 → ${toName} ¥${formatYuan(cents)}`)
       onDone()
+    } else if (res.reason === 'busy') {
+      return
     } else if (res.reason === 'duplicate') {
       setPhase({ kind: 'duplicate', matches: res.matches })
     } else if (res.reason === 'locked') {
-      showToast('房间已冻结，暂不能记账')
+      showToast('房间已冻结或牌局已结束，这笔未记录')
       onDone()
     } else {
       setPhase({ kind: 'failed' })
@@ -55,7 +61,7 @@ function RecordForm({ toId, onDone }: { toId: MemberId; onDone: () => void }) {
     >
       <div className="flex items-center justify-between rounded-2xl bg-muted/60 px-4 py-3">
         <div className="flex flex-col items-center gap-1">
-          <Avatar id={ME} />
+          <Avatar member={member(me)} />
           <span className="text-[13px] font-medium">我</span>
         </div>
         <div className="flex flex-1 flex-col items-center px-2 text-muted-foreground">
@@ -64,12 +70,19 @@ function RecordForm({ toId, onDone }: { toId: MemberId; onDone: () => void }) {
           <span className="text-xs">记一笔转出</span>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <Avatar id={toId} />
-          <span className="text-[13px] font-medium">{to.name}</span>
+          <Avatar member={member(toId)} />
+          <span className="text-[13px] font-medium">{toName}</span>
         </div>
       </div>
 
-      <AmountField value={value} onChange={(v) => { setValue(v); if (phase.kind !== 'submitting') setPhase({ kind: 'idle' }) }} invalid={invalid} />
+      <AmountField
+        value={value}
+        onChange={(v) => {
+          setValue(v)
+          if (phase.kind !== 'submitting') setPhase({ kind: 'idle' })
+        }}
+        invalid={invalid}
+      />
 
       <p className="flex items-start gap-2 rounded-xl bg-secondary px-3 py-2.5 text-[13px] leading-relaxed text-secondary-foreground">
         <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -90,14 +103,10 @@ function RecordForm({ toId, onDone }: { toId: MemberId; onDone: () => void }) {
             疑似重复记录
           </p>
           <p className="mt-1 text-[13px] leading-relaxed text-foreground/80">
-            {`${formatTime(phase.matches[0].createdAt)} 已有一笔「我 → ${to.name} ¥${formatYuan(phase.matches[0].amount)}」。确认不是重复提交吗？`}
+            {`${formatTime(phase.matches[0].createdAt)} 已有一笔「我 → ${toName} ¥${formatYuan(phase.matches[0].amount)}」。确认不是重复提交吗？`}
           </p>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={onDone}
-              className="h-11 rounded-xl border border-border bg-card text-[15px] font-medium active:bg-muted"
-            >
+            <button type="button" onClick={onDone} className="h-11 rounded-xl border border-border bg-card text-[15px] font-medium active:bg-muted">
               不记了
             </button>
             <button

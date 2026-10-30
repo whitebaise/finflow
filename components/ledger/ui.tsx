@@ -1,18 +1,17 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { formatSigned, formatYuan, memberById, type MemberId, netLabel } from '@/lib/ledger'
+import { formatSigned, formatYuan, type Member, netLabel, ROLE_LABEL, ROOM_STATUS_LABEL, type Room } from '@/lib/ledger'
 
 export function Avatar({
-  id,
+  member: m,
   size = 'md',
   className,
 }: {
-  id: MemberId
+  member: Member
   size?: 'sm' | 'md' | 'lg'
   className?: string
 }) {
-  const m = memberById(id)
   return (
     <span
       aria-hidden="true"
@@ -89,6 +88,39 @@ export function SectionHeader({
       </h2>
       {action}
     </div>
+  )
+}
+
+export function RoleTag({ member, className }: { member: Member; className?: string }) {
+  if (member.role === 'member') return null
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full px-1.5 py-px text-[11px] font-semibold',
+        member.role === 'owner' ? 'bg-primary text-primary-foreground' : 'bg-lime text-lime-foreground',
+        className,
+      )}
+    >
+      {ROLE_LABEL[member.role]}
+    </span>
+  )
+}
+
+export function RoomStatusTag({ room, className }: { room: Pick<Room, 'status' | 'frozen'>; className?: string }) {
+  const label = room.status === 'playing' && room.frozen ? '已冻结' : ROOM_STATUS_LABEL[room.status]
+  return (
+    <span
+      className={cn(
+        'inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-medium',
+        room.status === 'playing' && !room.frozen && 'bg-secondary text-secondary-foreground',
+        (room.frozen || room.status === 'reviewing') && 'bg-warning-soft text-[#7A5A12]',
+        room.status === 'settling' && 'bg-[#E6ECF7] text-[#2F4C80]',
+        room.status === 'settled' && 'bg-positive/10 text-positive',
+        className,
+      )}
+    >
+      {label}
+    </span>
   )
 }
 
