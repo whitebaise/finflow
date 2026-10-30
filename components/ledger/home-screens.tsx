@@ -62,25 +62,31 @@ function SummaryCard({ rooms }: { rooms: Room[] }) {
   ]
 
   return (
-    <section aria-labelledby="summary-title" className="rounded-2xl bg-primary p-4 text-primary-foreground">
+    <section aria-labelledby="summary-title" className="rounded-2xl bg-card p-4 shadow-[0_1px_3px_rgba(20,48,31,0.06)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p id="summary-title" className="text-[13px] text-primary-foreground/70">
+          <p id="summary-title" className="text-[13px] text-muted-foreground">
             进行中牌局 · 我的合计
           </p>
-          <p className={cn('mt-1 text-[34px] font-extrabold leading-none tracking-tight tabular-nums', liveNet > 0 && 'text-lime')}>
+          <p
+            className={cn(
+              'mt-1.5 text-[32px] font-extrabold leading-none tracking-tight tabular-nums',
+              liveNet > 0 && 'text-positive',
+              liveNet < 0 && 'text-negative',
+            )}
+          >
             {formatSigned(liveNet)}
           </p>
         </div>
-        <div className="shrink-0 rounded-lg bg-white/10 px-2.5 py-1.5 text-right">
-          <p className="text-[11px] text-primary-foreground/70">历史累计</p>
+        <div className="shrink-0 rounded-lg bg-secondary px-2.5 py-1.5 text-right text-secondary-foreground">
+          <p className="text-[11px] text-secondary-foreground/70">历史累计</p>
           <p className="text-[15px] font-bold tabular-nums">{formatSigned(settledNet)}</p>
         </div>
       </div>
-      <dl className="mt-4 grid grid-cols-3 divide-x divide-white/15 rounded-xl bg-white/10 py-2.5 text-center">
+      <dl className="mt-4 grid grid-cols-3 divide-x divide-border border-t border-border pt-3 text-center">
         {stats.map((s) => (
           <div key={s.label}>
-            <dt className="text-[11px] text-primary-foreground/70">{s.label}</dt>
+            <dt className="text-[11px] text-muted-foreground">{s.label}</dt>
             <dd className="mt-0.5 text-[15px] font-bold tabular-nums">{s.value}</dd>
           </div>
         ))}
@@ -270,7 +276,7 @@ function CreateRoomSheet({ open, onClose, onCreated }: { open: boolean; onClose:
           e.preventDefault()
           if (!canCreate) return
           const room = createRoom({ name: name.trim() || '新的牌局', memberNames: names })
-          showToast(`已创建「${room.name}」，房间号 ${room.code}`)
+          showToast(`���创建「${room.name}」，房间号 ${room.code}`)
           setName('')
           setNames([])
           onCreated(room.id)
