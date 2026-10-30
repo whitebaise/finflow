@@ -19,13 +19,17 @@ export function BottomSheet({
 }) {
   const titleId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
+  // Callers pass inline handlers; keeping the latest in a ref stops every parent render
+  // from re-running the effect below, which would yank focus out of inputs mid-typing.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     if (!open) return
     const prev = document.activeElement as HTMLElement | null
     panelRef.current?.focus()
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') onCloseRef.current()
     }
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
@@ -37,7 +41,7 @@ export function BottomSheet({
       appRoot?.removeAttribute('inert')
       prev?.focus()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 

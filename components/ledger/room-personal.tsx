@@ -3,77 +3,66 @@
 import { ChevronRight, Inbox } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { formatYuan, ME, MEMBERS, type MemberId, netLabel } from '@/lib/ledger'
+import { formatYuan, isActive, type MemberId, netLabel } from '@/lib/ledger'
 import { RecordRow } from './record-row'
 import { RecordSheet } from './record-sheet'
-import { useLedger } from './store'
+import { useRoom } from './store'
 import { Avatar, Card, NetTag, SectionHeader } from './ui'
 
 export function RoomPersonal({ onViewAll }: { onViewAll: () => void }) {
-  const { net, records, locked, showToast } = useLedger()
+  const { room, net, me, locked, showToast, nameOf } = useRoom()
   const [target, setTarget] = useState<MemberId | null>(null)
-  const myNet = net[ME]
-  const activeCount = records.filter((r) => !r.revoked).length
-  const recent = [...records].reverse().slice(0, 3)
+  const myNet = net[me] ?? 0
+  const activeCount = room.records.filter(isActive).length
+  const recent = [...room.records].reverse().slice(0, 3)
+  const cols = room.members.length <= 4 ? 'grid-cols-4' : 'grid-cols-5'
 
   return (
     <div className="flex flex-col gap-3">
-      <section className="rounded-3xl bg-lime p-4 text-lime-foreground" aria-labelledby="my-net-label">
-        <div className="flex items-start justify-between px-1 pt-1">
-          <div>
-            <p id="my-net-label" className="text-[20px] font-bold">
-              我的当前净额
-            </p>
-            <p className="mt-0.5 text-[13px] text-lime-foreground/70">
-              {myNet < 0
-                ? `账面上我需要付出 ¥${formatYuan(myNet)}`
-                : myNet > 0
-                  ? `账面上我可以收回 ¥${formatYuan(myNet)}`
-                  : '目前账面持平'}
-            </p>
-          </div>
-          <span className="rounded-full bg-lime-soft px-3 py-1 text-[13px] font-semibold">{netLabel(myNet)}</span>
+      <section className="flex items-center gap-3 rounded-3xl bg-lime px-4 py-3 text-lime-foreground" aria-labelledby="my-net-label">
+        <div className="min-w-0 flex-1">
+          <p id="my-net-label" className="flex items-center gap-2 text-[13px] font-semibold">
+            我的当前净额
+            <span className="rounded-full bg-lime-soft px-2 py-px text-[11px]">{netLabel(myNet)}</span>
+          </p>
+          <p className="mt-1 text-[30px] font-extrabold leading-none tracking-tight tabular-nums">
+            {myNet === 0 ? '¥0' : `${myNet > 0 ? '+' : '−'}¥${formatYuan(myNet)}`}
+          </p>
         </div>
-        <p className="mt-3 px-1 text-[42px] font-extrabold leading-none tracking-tight tabular-nums">
-          {myNet === 0 ? '¥0' : `${myNet > 0 ? '+' : '−'}¥${formatYuan(myNet)}`}
-        </p>
-        <dl className="mt-4 grid grid-cols-2 rounded-2xl bg-lime-soft px-3 py-3">
-          <div className="border-r border-lime-foreground/15 pr-3">
-            <dt className="text-[12px] text-lime-foreground/70">有效流水</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums">{`${activeCount} 笔`}</dd>
+        <dl className="flex shrink-0 gap-3 rounded-2xl bg-lime-soft px-3 py-2 text-center">
+          <div>
+            <dt className="text-[11px] text-lime-foreground/70">有效流水</dt>
+            <dd className="text-[15px] font-bold tabular-nums">{activeCount}</dd>
           </div>
-          <div className="pl-3">
-            <dt className="text-[12px] text-lime-foreground/70">房间成员</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums">{`${MEMBERS.length} 人`}</dd>
+          <div className="border-l border-lime-foreground/15 pl-3">
+            <dt className="text-[11px] text-lime-foreground/70">成员</dt>
+            <dd className="text-[15px] font-bold tabular-nums">{room.members.length}</dd>
           </div>
         </dl>
       </section>
 
-      <Card>
-        <SectionHeader
-          title="点头像记一笔"
-          action={<span className="text-xs text-muted-foreground">付款人默认是我</span>}
-        />
-        <ul className="grid grid-cols-4 gap-1">
-          {MEMBERS.map((m) => {
-            const isMe = m.id === ME
+      <Card className="pb-3">
+        <SectionHeader title="点头像记一笔" action={<span className="text-xs text-muted-foreground">付款人默认是我</span>} />
+        <ul className={cn('grid gap-1', cols)}>
+          {room.members.map((m) => {
+            const isMe = m.id === me
             const content = (
               <>
-                <Avatar id={m.id} size="lg" className={cn(!isMe && 'ring-offset-2 transition-shadow group-active:ring-2 group-active:ring-primary')} />
-                <span className="mt-1.5 text-[14px] font-medium text-foreground">{isMe ? '我' : m.name}</span>
-                <NetTag cents={net[m.id]} className="mt-1 px-1.5 text-[11px]" />
+                <Avatar member={m} size="lg" className={cn('size-12 text-base', !isMe && 'ring-offset-2 transition-shadow group-active:ring-2 group-active:ring-primary')} />
+                <span className="mt-1 max-w-full truncate px-0.5 text-[13px] font-medium text-foreground">{nameOf(m.id)}</span>
+                <NetTag cents={net[m.id] ?? 0} className="mt-0.5 px-1.5 text-[10px]" />
               </>
             )
             return (
-              <li key={m.id}>
+              <li key={m.id} className="min-w-0">
                 {isMe ? (
-                  <div className="flex flex-col items-center rounded-xl py-2 opacity-90">{content}</div>
+                  <div className="flex flex-col items-center rounded-xl py-1.5 opacity-90">{content}</div>
                 ) : (
                   <button
                     type="button"
-                    onClick={() => (locked ? showToast('房间已冻结，暂不能记账') : setTarget(m.id))}
-                    aria-label={`记给${m.name}，当前${netLabel(net[m.id])} ¥${formatYuan(net[m.id])}`}
-                    className="group flex w-full flex-col items-center rounded-xl py-2 active:bg-muted"
+                    onClick={() => (locked ? showToast(room.frozen ? '房间已冻结，暂不能记账' : '牌局已结束，记账已关闭') : setTarget(m.id))}
+                    aria-label={`记给${m.name}，当前${netLabel(net[m.id] ?? 0)} ¥${formatYuan(net[m.id] ?? 0)}`}
+                    className="group flex w-full flex-col items-center rounded-xl py-1.5 active:bg-muted"
                   >
                     {content}
                   </button>
@@ -82,6 +71,7 @@ export function RoomPersonal({ onViewAll }: { onViewAll: () => void }) {
             )
           })}
         </ul>
+        {room.members.length < 2 && <p className="mt-2 text-center text-xs text-muted-foreground">至少需要 2 名成员才能记账，先邀请成员加入</p>}
       </Card>
 
       <section aria-labelledby="recent-title" className="pt-1">
@@ -89,7 +79,7 @@ export function RoomPersonal({ onViewAll }: { onViewAll: () => void }) {
           <h2 id="recent-title" className="text-[16px] font-bold">
             最近记录
           </h2>
-          {records.length > 0 && (
+          {room.records.length > 0 && (
             <button type="button" onClick={onViewAll} className="-mr-2 flex h-8 items-center rounded-full px-2 text-[13px] font-semibold active:bg-muted">
               查看全部
               <ChevronRight className="size-4" aria-hidden="true" />
