@@ -65,7 +65,7 @@ export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => v
   return (
     <BottomSheet open={open} onClose={onClose} title="邀请成员">
       <div className="flex flex-col gap-4 pt-1">
-        <div className="rounded-3xl bg-lime p-4 text-center text-lime-foreground">
+        <div className="rounded-2xl bg-lime p-4 text-center text-lime-foreground">
           <p className="text-[13px]">房间号</p>
           <p className="mt-1 text-[34px] font-extrabold tracking-[0.2em] tabular-nums">{room.code}</p>
           <p className="mt-1 text-xs text-lime-foreground/70">{`${room.members.length}/${MAX_MEMBERS} 人`}</p>

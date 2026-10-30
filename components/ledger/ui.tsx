@@ -66,7 +66,7 @@ export function SignedAmount({ cents, className }: { cents: number; className?: 
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <section className={cn('rounded-3xl bg-card p-4 shadow-[0_1px_3px_rgba(20,48,31,0.06)]', className)}>
+    <section className={cn('rounded-2xl bg-card p-4 shadow-[0_1px_3px_rgba(20,48,31,0.06)]', className)}>
       {children}
     </section>
   )

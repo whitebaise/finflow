@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, Info, LogIn, Plus, X } from 'lucide-react'
+import { ChevronRight, Info, LogIn, PlayCircle, Plus, Trophy, X } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { computeNet, formatDate, formatSigned, isActive, MAX_MEMBERS, netLabel, type Room, VIEWER_NAME } from '@/lib/ledger'
@@ -18,7 +18,7 @@ function RoomCard({ room, onOpen }: { room: Room; onOpen: () => void }) {
   const net = computeNet(room)
   const myNet = net[room.viewerId] ?? 0
   return (
-    <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 rounded-xl p-2 text-left active:bg-muted/60">
+    <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 rounded-lg p-2 text-left active:bg-muted/60">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="truncate text-[17px] font-semibold">{room.name}</p>
@@ -40,39 +40,136 @@ function RoomCard({ room, onOpen }: { room: Room; onOpen: () => void }) {
   )
 }
 
-export function HomeScreen({ onEnterRoom, onOpenHistory }: { onEnterRoom: (id: string) => void; onOpenHistory: (id: string) => void }) {
+function greeting() {
+  const h = new Date().getHours()
+  if (h < 6) return '夜深了'
+  if (h < 11) return '早上好'
+  if (h < 14) return '中午好'
+  if (h < 18) return '下午好'
+  return '晚上好'
+}
+
+function SummaryCard({ rooms }: { rooms: Room[] }) {
+  const active = rooms.filter((r) => r.status !== 'settled')
+  const settled = rooms.filter((r) => r.status === 'settled')
+  const liveNet = active.reduce((sum, r) => sum + (computeNet(r)[r.viewerId] ?? 0), 0)
+  const settledNet = settled.reduce((sum, r) => sum + (r.settlement?.net[r.viewerId] ?? 0), 0)
+  const wins = settled.filter((r) => (r.settlement?.net[r.viewerId] ?? 0) > 0).length
+  const stats = [
+    { label: '进行中', value: `${active.length} 局` },
+    { label: '已结清', value: `${settled.length} 局` },
+    { label: '历史胜率', value: settled.length ? `${Math.round((wins / settled.length) * 100)}%` : '—' },
+  ]
+
+  return (
+    <section aria-labelledby="summary-title" className="rounded-2xl bg-primary p-4 text-primary-foreground">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p id="summary-title" className="text-[13px] text-primary-foreground/70">
+            进行中牌局 · 我的合计
+          </p>
+          <p className={cn('mt-1 text-[34px] font-extrabold leading-none tracking-tight tabular-nums', liveNet > 0 && 'text-lime')}>
+            {formatSigned(liveNet)}
+          </p>
+        </div>
+        <div className="shrink-0 rounded-lg bg-white/10 px-2.5 py-1.5 text-right">
+          <p className="text-[11px] text-primary-foreground/70">历史累计</p>
+          <p className="text-[15px] font-bold tabular-nums">{formatSigned(settledNet)}</p>
+        </div>
+      </div>
+      <dl className="mt-4 grid grid-cols-3 divide-x divide-white/15 rounded-xl bg-white/10 py-2.5 text-center">
+        {stats.map((s) => (
+          <div key={s.label}>
+            <dt className="text-[11px] text-primary-foreground/70">{s.label}</dt>
+            <dd className="mt-0.5 text-[15px] font-bold tabular-nums">{s.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
+function QuickAction({
+  icon: Icon,
+  label,
+  hint,
+  onClick,
+  tone = 'card',
+  disabled,
+}: {
+  icon: typeof Plus
+  label: string
+  hint: string
+  onClick: () => void
+  tone?: 'lime' | 'card'
+  disabled?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        'flex items-center gap-3 rounded-xl p-3 text-left transition-opacity active:opacity-85 disabled:opacity-45',
+        tone === 'lime' ? 'bg-lime text-lime-foreground' : 'bg-card text-foreground shadow-[0_1px_3px_rgba(20,48,31,0.06)]',
+      )}
+    >
+      <span
+        className={cn(
+          'flex size-9 shrink-0 items-center justify-center rounded-lg',
+          tone === 'lime' ? 'bg-lime-foreground text-lime' : 'bg-secondary text-secondary-foreground',
+        )}
+      >
+        <Icon className="size-[18px]" aria-hidden="true" />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-[15px] font-bold">{label}</span>
+        <span className={cn('block truncate text-[11px]', tone === 'lime' ? 'text-lime-foreground/70' : 'text-muted-foreground')}>{hint}</span>
+      </span>
+    </button>
+  )
+}
+
+export function HomeScreen({
+  onEnterRoom,
+  onOpenHistory,
+  onShowHistory,
+}: {
+  onEnterRoom: (id: string) => void
+  onOpenHistory: (id: string) => void
+  onShowHistory: () => void
+}) {
   const { rooms } = useLedger()
   const [sheet, setSheet] = useState<null | 'create' | 'join'>(null)
   const active = rooms.filter((r) => r.status !== 'settled')
+  const recentSettled = rooms
+    .filter((r) => r.status === 'settled')
+    .sort((a, b) => (b.settledAt ?? 0) - (a.settledAt ?? 0))
+    .slice(0, 2)
+  const lastActive = active[0]
 
   return (
     <main className="flex flex-1 flex-col gap-3 px-4 pb-28 pt-2">
-      <div className="px-1 pb-1">
-        <p className="text-[26px] font-extrabold tracking-tight">晚上好</p>
-        <p className="mt-0.5 text-[13px] text-muted-foreground">熟人牌局，记清每一笔</p>
+      <div className="flex items-end justify-between px-1">
+        <div>
+          <p className="text-[24px] font-extrabold tracking-tight" suppressHydrationWarning>{`${greeting()}，${VIEWER_NAME}`}</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">熟人牌局，记清每一笔</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          type="button"
-          onClick={() => setSheet('create')}
-          className="flex h-[104px] flex-col items-start justify-between rounded-3xl bg-lime p-4 text-left text-lime-foreground active:opacity-90"
-        >
-          <span className="flex size-9 items-center justify-center rounded-full bg-lime-foreground text-lime">
-            <Plus className="size-5" aria-hidden="true" />
-          </span>
-          <span className="text-[15px] font-bold">创建房间</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setSheet('join')}
-          className="flex h-[104px] flex-col items-start justify-between rounded-3xl bg-primary p-4 text-left text-primary-foreground active:opacity-90"
-        >
-          <span className="flex size-9 items-center justify-center rounded-full bg-white/15">
-            <LogIn className="size-5" aria-hidden="true" />
-          </span>
-          <span className="text-[15px] font-semibold">输入房间号加入</span>
-        </button>
+      <SummaryCard rooms={rooms} />
+
+      <div className="grid grid-cols-2 gap-2.5">
+        <QuickAction icon={Plus} label="创建房间" hint="开一局新牌" tone="lime" onClick={() => setSheet('create')} />
+        <QuickAction icon={LogIn} label="加入房间" hint="输入 6 位房间号" onClick={() => setSheet('join')} />
+        <QuickAction
+          icon={PlayCircle}
+          label="继续上局"
+          hint={lastActive ? lastActive.name : '暂无进行中'}
+          onClick={() => lastActive && onEnterRoom(lastActive.id)}
+          disabled={!lastActive}
+        />
+        <QuickAction icon={Trophy} label="历史战绩" hint="已结清的牌局" onClick={onShowHistory} />
       </div>
 
       <Card className="px-2 pb-2">
@@ -91,6 +188,38 @@ export function HomeScreen({ onEnterRoom, onOpenHistory }: { onEnterRoom: (id: s
           </ul>
         )}
       </Card>
+
+      {recentSettled.length > 0 && (
+        <Card className="px-2 pb-2">
+          <div className="px-2">
+            <SectionHeader
+              title="最近结清"
+              action={
+                <button type="button" onClick={onShowHistory} className="-mr-2 flex h-8 items-center rounded-full px-2 text-[13px] font-semibold active:bg-muted">
+                  全部
+                  <ChevronRight className="size-4" aria-hidden="true" />
+                </button>
+              }
+            />
+          </div>
+          <ul className="flex flex-col divide-y divide-border">
+            {recentSettled.map((r) => {
+              const myNet = r.settlement?.net[r.viewerId] ?? 0
+              return (
+                <li key={r.id}>
+                  <button type="button" onClick={() => onOpenHistory(r.id)} className="flex w-full items-center gap-3 rounded-lg p-2 text-left active:bg-muted/60">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px] font-semibold">{r.name}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{`${formatDate(r.settledAt ?? r.createdAt)} · ${r.members.length} 人`}</p>
+                    </div>
+                    <p className={cn('text-[16px] font-bold tabular-nums', myNet > 0 && 'text-positive', myNet < 0 && 'text-negative')}>{formatSigned(myNet)}</p>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </Card>
+      )}
 
       <p className="px-1 text-xs leading-relaxed text-muted-foreground">
         这是本地交互原型，所有数据为模拟数据并只保存在当前页面，不连接微信登录、数据库或支付，也不支持多人实时同步。

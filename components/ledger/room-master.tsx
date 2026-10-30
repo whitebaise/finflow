@@ -26,7 +26,7 @@ function MemberPicker({
   return (
     <fieldset>
       <legend className="text-[13px] text-muted-foreground">{label}</legend>
-      <div className={cn('mt-2 grid gap-2', room.members.length <= 4 ? 'grid-cols-4' : 'grid-cols-5')} role="radiogroup" aria-label={label}>
+      <div className={cn('mt-1.5 grid gap-1.5', room.members.length <= 4 ? 'grid-cols-4' : 'grid-cols-5')} role="radiogroup" aria-label={label}>
         {room.members.map((m) => {
           const selected = value === m.id
           return (
@@ -38,11 +38,11 @@ function MemberPicker({
               disabled={disabledId === m.id}
               onClick={() => onChange(m.id)}
               className={cn(
-                'flex min-w-0 flex-col items-center gap-1 rounded-2xl border-2 py-2 transition-colors disabled:opacity-35',
+                'flex min-w-0 items-center justify-center gap-1.5 rounded-lg border-2 px-1 py-1.5 transition-colors disabled:opacity-35',
                 selected ? 'border-primary bg-secondary' : 'border-transparent bg-muted active:bg-secondary',
               )}
             >
-              <Avatar member={m} size="sm" className="size-9" />
+              <Avatar member={m} size="sm" className="size-6 text-[11px]" />
               <span className={cn('max-w-full truncate px-0.5 text-[13px]', selected && 'font-bold')}>{nameOf(m.id)}</span>
             </button>
           )
@@ -124,43 +124,35 @@ export function RoomMaster() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-secondary px-3 py-2.5" role="status">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-lime">
-          <PenLine className="size-4" aria-hidden="true" />
-        </span>
-        <p className="min-w-0 text-[13px] leading-snug text-secondary-foreground">
-          <span className="font-semibold">{`正在代记 · 记录人：我（${viewer.name}）`}</span>
-          <span className="block text-secondary-foreground/75">与个人记账共用同一份账本，每笔标注「代记」</span>
-        </p>
-      </div>
-
-      <TableNet />
-
-      <Card>
-        <SectionHeader title="新增一笔" />
-        <div className="flex flex-col gap-4">
+      <Card className="pt-3">
+        <SectionHeader
+          title="新增一笔"
+          action={
+            <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground">
+              <PenLine className="size-3" aria-hidden="true" />
+              {`代记 · 记录人 ${viewer.name}`}
+            </span>
+          }
+        />
+        <div className="flex flex-col gap-3">
           <MemberPicker
             label="付款人（谁转出）"
             value={from}
             onChange={(id) => setDraftForm({ from: id, to: to === id ? null : to, value })}
           />
           <MemberPicker label="收款人（转给谁）" value={to} onChange={(id) => setDraftForm({ from, to: id, value })} disabledId={from} />
-          <AmountField value={value} onChange={(v) => setDraftForm({ from, to, value: v })} invalid={value !== '' && cents === null} />
-          <div className="flex items-center gap-2 rounded-2xl bg-muted px-3.5 py-3 text-[14px]" aria-live="polite">
-            {from && to && cents ? (
-              <>
-                <span className="font-medium">{nameOf(from)}</span>
-                <ArrowRight className="size-4 text-muted-foreground" aria-label="转给" />
-                <span className="font-medium">{nameOf(to)}</span>
-                <span className="ml-auto font-semibold tabular-nums">¥{formatYuan(cents)}</span>
-              </>
-            ) : (
-              <span className="text-muted-foreground">选择付款人、收款人并输入金额</span>
-            )}
-          </div>
-          <SecondaryButton type="button" onClick={add} disabled={!canAdd} className="w-full">
+          <AmountField compact value={value} onChange={(v) => setDraftForm({ from, to, value: v })} invalid={value !== '' && cents === null} />
+          <SecondaryButton type="button" onClick={add} disabled={!canAdd} className="w-full rounded-xl" aria-live="polite">
             <Plus className="size-4" aria-hidden="true" />
-            加入待提交
+            {from && to && cents ? (
+              <span className="flex items-center gap-1">
+                {`加入：${nameOf(from)}`}
+                <ArrowRight className="size-3.5" aria-label="转给" />
+                {`${nameOf(to)} ¥${formatYuan(cents)}`}
+              </span>
+            ) : (
+              '选择付款人、收款人和金额'
+            )}
           </SecondaryButton>
         </div>
       </Card>
@@ -171,7 +163,7 @@ export function RoomMaster() {
           action={drafts.length > 0 && <span className="text-[13px] tabular-nums text-muted-foreground">合计 ¥{formatYuan(total)}</span>}
         />
         {drafts.length === 0 ? (
-          <p className="py-4 text-center text-[13px] text-muted-foreground">可以连续添加多笔，再统一提交。草稿按房间保存，切换页面不会丢失</p>
+          <p className="py-2 text-center text-[13px] text-muted-foreground">可连续添加多笔再统一提交，草稿切换页面不丢失</p>
         ) : (
           <ul className="divide-y divide-border">
             {drafts.map((d) => (
@@ -235,6 +227,8 @@ export function RoomMaster() {
           )
         )}
       </Card>
+
+      <TableNet />
     </div>
   )
 }
