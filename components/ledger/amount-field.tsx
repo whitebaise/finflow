@@ -9,11 +9,13 @@ export function AmountField({
   onChange,
   invalid,
   autoFocus,
+  compact,
 }: {
   value: string
   onChange: (value: string) => void
   invalid?: boolean
   autoFocus?: boolean
+  compact?: boolean
 }) {
   const id = useId()
   const hintId = `${id}-hint`
@@ -25,7 +27,9 @@ export function AmountField({
       </label>
       <div
         className={cn(
-          'mt-1.5 flex h-16 items-center gap-1 rounded-2xl border bg-muted/60 px-4 transition-colors focus-within:border-primary focus-within:bg-card',
+          'mt-1.5 flex items-center',
+          compact ? 'h-14' : 'h-16',
+          'gap-1 rounded-xl border bg-muted/60 px-4 transition-colors focus-within:border-primary focus-within:bg-card',
           invalid ? 'border-destructive' : 'border-transparent',
         )}
       >
@@ -57,10 +61,10 @@ export function AmountField({
           </button>
         )}
       </div>
-      <p id={hintId} className={cn('mt-1.5 text-xs', invalid ? 'text-destructive' : 'text-muted-foreground')}>
+      <p id={hintId} className={cn('mt-1.5 text-xs', invalid ? 'text-destructive' : 'text-muted-foreground', compact && !invalid && 'sr-only')}>
         {invalid ? '请输入大于 0 的金额，最多两位小数' : '支持最多两位小数'}
       </p>
-      <div className="mt-3 grid grid-cols-5 gap-2" role="group" aria-label="快捷金额">
+      <div className={cn('grid grid-cols-5 gap-2', compact ? 'mt-2' : 'mt-3')} role="group" aria-label="快捷金额">
         {QUICK_AMOUNTS.map((n) => {
           const active = value === String(n)
           return (
@@ -70,7 +74,8 @@ export function AmountField({
               onClick={() => onChange(String(n))}
               aria-pressed={active}
               className={cn(
-                'h-11 rounded-xl border text-[15px] font-medium tabular-nums transition-colors',
+                compact ? 'h-10' : 'h-11',
+                'rounded-lg border text-[15px] font-medium tabular-nums transition-colors',
                 active ? 'border-primary bg-secondary text-secondary-foreground' : 'border-border bg-card text-foreground active:bg-muted',
               )}
             >

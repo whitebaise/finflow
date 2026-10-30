@@ -66,7 +66,7 @@ function Screens() {
     <>
       <WxNavBar title={screen.name === 'home' ? '牌局记账' : '历史房间'} />
       {screen.name === 'home' ? (
-        <HomeScreen onEnterRoom={enterRoom} onOpenHistory={(id) => go({ name: 'historyDetail', roomId: id, from: 'home' })} />
+        <HomeScreen onEnterRoom={enterRoom} onOpenHistory={(id) => go({ name: 'historyDetail', roomId: id, from: 'home' })} onShowHistory={() => go({ name: 'history' })} />
       ) : (
         <HistoryScreen onOpen={(id) => go({ name: 'historyDetail', roomId: id, from: 'history' })} />
       )}

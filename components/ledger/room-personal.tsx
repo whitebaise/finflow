@@ -10,8 +10,10 @@ import { useRoom } from './store'
 import { Avatar, Card, NetTag, SectionHeader } from './ui'
 
 export function RoomPersonal({ onViewAll }: { onViewAll: () => void }) {
-  const { room, net, me, locked, showToast, nameOf } = useRoom()
+  const { room, net, me, locked, showToast, nameOf, preview } = useRoom()
   const [target, setTarget] = useState<MemberId | null>(null)
+  const toReceive = preview.filter((t) => t.to === me).reduce((s, t) => s + t.amount, 0)
+  const toPay = preview.filter((t) => t.from === me).reduce((s, t) => s + t.amount, 0)
   const myNet = net[me] ?? 0
   const activeCount = room.records.filter(isActive).length
   const recent = [...room.records].reverse().slice(0, 3)
@@ -19,24 +21,30 @@ export function RoomPersonal({ onViewAll }: { onViewAll: () => void }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <section className="flex items-center gap-3 rounded-3xl bg-lime px-4 py-3 text-lime-foreground" aria-labelledby="my-net-label">
-        <div className="min-w-0 flex-1">
-          <p id="my-net-label" className="flex items-center gap-2 text-[13px] font-semibold">
-            我的当前净额
-            <span className="rounded-full bg-lime-soft px-2 py-px text-[11px]">{netLabel(myNet)}</span>
-          </p>
-          <p className="mt-1 text-[30px] font-extrabold leading-none tracking-tight tabular-nums">
-            {myNet === 0 ? '¥0' : `${myNet > 0 ? '+' : '−'}¥${formatYuan(myNet)}`}
-          </p>
-        </div>
-        <dl className="flex shrink-0 gap-3 rounded-2xl bg-lime-soft px-3 py-2 text-center">
+      <section className="rounded-2xl bg-lime p-5 text-lime-foreground" aria-labelledby="my-net-label">
+        <p id="my-net-label" className="flex items-center gap-2 text-[14px] font-semibold">
+          我的当前净额
+          <span className="rounded-md bg-lime-soft px-2 py-0.5 text-[12px]">{netLabel(myNet)}</span>
+        </p>
+        <p className="mt-2 text-[46px] font-extrabold leading-none tracking-tight tabular-nums">
+          {myNet === 0 ? '¥0' : `${myNet > 0 ? '+' : '−'}¥${formatYuan(myNet)}`}
+        </p>
+        <dl className="mt-4 grid grid-cols-4 divide-x divide-lime-foreground/15 rounded-xl bg-lime-soft py-2.5 text-center">
+          <div>
+            <dt className="text-[11px] text-lime-foreground/70">预计应收</dt>
+            <dd className="mt-0.5 text-[15px] font-bold tabular-nums">{`¥${formatYuan(toReceive)}`}</dd>
+          </div>
+          <div>
+            <dt className="text-[11px] text-lime-foreground/70">预计应付</dt>
+            <dd className="mt-0.5 text-[15px] font-bold tabular-nums">{`¥${formatYuan(toPay)}`}</dd>
+          </div>
           <div>
             <dt className="text-[11px] text-lime-foreground/70">有效流水</dt>
-            <dd className="text-[15px] font-bold tabular-nums">{activeCount}</dd>
+            <dd className="mt-0.5 text-[15px] font-bold tabular-nums">{activeCount}</dd>
           </div>
-          <div className="border-l border-lime-foreground/15 pl-3">
+          <div>
             <dt className="text-[11px] text-lime-foreground/70">成员</dt>
-            <dd className="text-[15px] font-bold tabular-nums">{room.members.length}</dd>
+            <dd className="mt-0.5 text-[15px] font-bold tabular-nums">{room.members.length}</dd>
           </div>
         </dl>
       </section>
@@ -93,7 +101,7 @@ export function RoomPersonal({ onViewAll }: { onViewAll: () => void }) {
         ) : (
           <ul className="flex flex-col gap-2.5">
             {recent.map((r) => (
-              <li key={r.id} className="rounded-2xl bg-card px-3.5 py-3 shadow-[0_1px_3px_rgba(20,48,31,0.06)]">
+              <li key={r.id} className="rounded-xl bg-card px-3.5 py-3 shadow-[0_1px_3px_rgba(20,48,31,0.06)]">
                 <RecordRow record={r} />
               </li>
             ))}
