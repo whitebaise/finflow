@@ -58,22 +58,20 @@ export function LedgerPage() {
         {`有效流水合计 ¥${formatYuan(activeTotal)} · 撤销的记录会保留，但不计入净额`}
       </p>
 
-      <Card className="p-0">
-        {list.length === 0 ? (
-          <div className="p-4">
-            <EmptyRecords
-              text={filter === 'revoked' ? '没有已撤销的记录' : filter === 'mine' ? '暂无与我有关的记录' : '还没有任何记录'}
-              hint={filter === 'revoked' ? '撤销后的流水会显示在这里' : '回到记账页添加一笔'}
-            />
-          </div>
-        ) : (
-          <ul className="divide-y divide-border">
-            {list.map((r) => (
-              <LedgerItem key={r.id} record={r} open={expanded === r.id} onToggle={() => setExpanded(expanded === r.id ? null : r.id)} />
-            ))}
-          </ul>
-        )}
-      </Card>
+      {list.length === 0 ? (
+        <Card>
+          <EmptyRecords
+            text={filter === 'revoked' ? '没有已撤销的记录' : filter === 'mine' ? '暂无与我有关的记录' : '还没有任何记录'}
+            hint={filter === 'revoked' ? '撤销后的流水会显示在这里' : '回到记账页添加一笔'}
+          />
+        </Card>
+      ) : (
+        <ul className="flex flex-col gap-2.5">
+          {list.map((r) => (
+            <LedgerItem key={r.id} record={r} open={expanded === r.id} onToggle={() => setExpanded(expanded === r.id ? null : r.id)} />
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
@@ -84,7 +82,7 @@ function LedgerItem({ record, open, onToggle }: { record: LedgerRecord; open: bo
   const detailId = `detail-${record.id}`
 
   return (
-    <li>
+    <li className="overflow-hidden rounded-2xl bg-card shadow-[0_1px_3px_rgba(20,48,31,0.06)]">
       <button
         type="button"
         onClick={() => {
@@ -93,13 +91,13 @@ function LedgerItem({ record, open, onToggle }: { record: LedgerRecord; open: bo
         }}
         aria-expanded={open}
         aria-controls={detailId}
-        className="flex w-full items-center gap-2 px-4 py-3.5 text-left active:bg-muted/60"
+        className="flex w-full items-center gap-2 px-3.5 py-3 text-left active:bg-muted/60"
       >
         <RecordRow record={record} className="flex-1" />
         <ChevronDown className={cn('size-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')} aria-hidden="true" />
       </button>
       {open && (
-        <div id={detailId} className="mx-4 mb-3.5 rounded-xl bg-muted/60 p-3">
+        <div id={detailId} className="mx-3 mb-3 rounded-xl bg-muted p-3">
           <dl className="grid grid-cols-[72px_1fr] gap-y-1.5 text-[13px]">
             <dt className="text-muted-foreground">方向</dt>
             <dd>{`${memberById(record.from).name} 转给 ${memberById(record.to).name}`}</dd>

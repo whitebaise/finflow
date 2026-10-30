@@ -46,7 +46,7 @@ export function RoomScreen({
           <button
             type="button"
             onClick={() => setDemoOpen(true)}
-            className="-mr-1 flex h-9 items-center gap-1 rounded-full border border-border bg-card px-3 text-[13px] text-muted-foreground active:bg-muted"
+            className="-mr-1 flex h-9 items-center gap-1 rounded-full bg-card px-3 text-[13px] font-medium text-foreground shadow-[0_1px_3px_rgba(20,48,31,0.1)] active:bg-muted"
           >
             <FlaskConical className="size-3.5" aria-hidden="true" />
             演示状态
@@ -63,7 +63,7 @@ export function RoomScreen({
           <button
             type="button"
             onClick={() => onTab('settle')}
-            className="flex items-center gap-2 rounded-xl bg-secondary px-3 py-2.5 text-left text-[13px] text-secondary-foreground"
+            className="flex items-center gap-2 rounded-2xl bg-secondary px-3.5 py-3 text-left text-[13px] text-secondary-foreground"
           >
             <Flag className="size-4 shrink-0" aria-hidden="true" />
             <span className="flex-1">牌局已结束，记账已关闭。</span>
@@ -73,7 +73,7 @@ export function RoomScreen({
 
         {tab === 'record' && (
           <>
-            <div className="grid grid-cols-2 rounded-xl bg-[#E6E9E5] p-1" role="tablist" aria-label="记账方式">
+            <div className="grid grid-cols-2 rounded-full bg-secondary p-1" role="tablist" aria-label="记账方式">
               {(
                 [
                   { id: 'personal', label: '个人记账' },
@@ -87,8 +87,8 @@ export function RoomScreen({
                   aria-selected={mode === m.id}
                   onClick={() => onMode(m.id)}
                   className={cn(
-                    'h-10 rounded-lg text-[15px] font-medium transition-all',
-                    mode === m.id ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground',
+                    'h-10 rounded-full text-[15px] font-semibold transition-all',
+                    mode === m.id ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground',
                   )}
                 >
                   {m.label}
@@ -106,9 +106,10 @@ export function RoomScreen({
         label="房间导航"
         value={tab}
         onChange={onTab}
+        featured="record"
         items={[
-          { id: 'record', label: '记账', icon: PencilLine },
           { id: 'ledger', label: '明细', icon: ListOrdered },
+          { id: 'record', label: '记账', icon: PencilLine },
           { id: 'settle', label: '结算', icon: Wallet },
         ]}
       />

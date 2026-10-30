@@ -15,7 +15,7 @@ export function HomeScreen({ onEnterRoom }: { onEnterRoom: () => void }) {
   return (
     <main className="flex flex-1 flex-col gap-3 px-4 pb-28 pt-2">
       <div className="px-1 pb-1">
-        <p className="text-[22px] font-bold">晚上好</p>
+        <p className="text-[26px] font-extrabold tracking-tight">晚上好</p>
         <p className="mt-0.5 text-[13px] text-muted-foreground">熟人牌局，记清每一笔</p>
       </div>
 
@@ -23,17 +23,21 @@ export function HomeScreen({ onEnterRoom }: { onEnterRoom: () => void }) {
         <button
           type="button"
           onClick={() => showToast('原型暂未开放创建房间')}
-          className="flex h-[88px] flex-col items-start justify-between rounded-2xl bg-primary p-4 text-left text-primary-foreground active:opacity-90"
+          className="flex h-[104px] flex-col items-start justify-between rounded-3xl bg-lime p-4 text-left text-lime-foreground active:opacity-90"
         >
-          <Plus className="size-5" aria-hidden="true" />
-          <span className="text-[15px] font-semibold">创建房间</span>
+          <span className="flex size-9 items-center justify-center rounded-full bg-lime-foreground text-lime">
+            <Plus className="size-5" aria-hidden="true" />
+          </span>
+          <span className="text-[15px] font-bold">创建房间</span>
         </button>
         <button
           type="button"
           onClick={() => showToast('原型暂未开放加入房间')}
-          className="flex h-[88px] flex-col items-start justify-between rounded-2xl bg-card p-4 text-left active:bg-muted"
+          className="flex h-[104px] flex-col items-start justify-between rounded-3xl bg-primary p-4 text-left text-primary-foreground active:opacity-90"
         >
-          <LogIn className="size-5 text-primary" aria-hidden="true" />
+          <span className="flex size-9 items-center justify-center rounded-full bg-white/15">
+            <LogIn className="size-5" aria-hidden="true" />
+          </span>
           <span className="text-[15px] font-semibold">输入房间号加入</span>
         </button>
       </div>

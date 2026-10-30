@@ -67,7 +67,7 @@ export function SignedAmount({ cents, className }: { cents: number; className?: 
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <section className={cn('rounded-2xl bg-card p-4 shadow-[0_1px_2px_rgba(16,40,30,0.04),0_4px_16px_rgba(16,40,30,0.04)]', className)}>
+    <section className={cn('rounded-3xl bg-card p-4 shadow-[0_1px_3px_rgba(20,48,31,0.06)]', className)}>
       {children}
     </section>
   )
@@ -94,7 +94,7 @@ export function SectionHeader({
 
 export function ProxyTag() {
   return (
-    <span className="inline-flex items-center rounded-md border border-primary/25 bg-secondary px-1.5 py-px text-[11px] font-medium text-secondary-foreground">
+    <span className="inline-flex items-center rounded-full bg-lime px-1.5 py-px text-[11px] font-semibold text-lime-foreground">
       代记
     </span>
   )
@@ -112,7 +112,7 @@ export function PrimaryButton({
       disabled={props.disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        'flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-[16px] font-semibold text-primary-foreground transition-opacity active:opacity-85 disabled:opacity-45',
+        'flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-primary text-[16px] font-semibold text-primary-foreground transition-opacity active:opacity-85 disabled:opacity-40',
         className,
       )}
     >
@@ -127,7 +127,7 @@ export function SecondaryButton({ className, ...props }: React.ButtonHTMLAttribu
     <button
       {...props}
       className={cn(
-        'flex h-11 items-center justify-center gap-1.5 rounded-xl bg-secondary px-4 text-[15px] font-medium text-secondary-foreground transition-opacity active:opacity-80 disabled:opacity-45',
+        'flex h-12 items-center justify-center gap-1.5 rounded-2xl bg-lime px-4 text-[15px] font-medium text-secondary-foreground transition-opacity active:opacity-80 disabled:opacity-45',
         className,
       )}
     />

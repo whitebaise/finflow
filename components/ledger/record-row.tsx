@@ -19,8 +19,8 @@ export function RecordRow({ record, className }: { record: LedgerRecord; classNa
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <div className="relative flex shrink-0 items-center">
-        <Avatar id={record.from} size="sm" className="ring-2 ring-card" />
-        <Avatar id={record.to} size="sm" className="-ml-2.5 ring-2 ring-card" />
+        <Avatar id={record.from} size="sm" className="size-9 ring-2 ring-card" />
+        <Avatar id={record.to} size="sm" className="-ml-3 size-9 ring-2 ring-card" />
       </div>
       <div className="min-w-0 flex-1">
         <p className={cn('flex items-center gap-1 text-[15px] font-medium', revoked && 'text-muted-foreground line-through')}>

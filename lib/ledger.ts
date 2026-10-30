@@ -11,10 +11,10 @@ export const ME: MemberId = 'me'
 
 /** Fixed display order. Never re-sorted by net amount. */
 export const MEMBERS: Member[] = [
-  { id: 'lin', name: '小林', initial: '林', tone: 'bg-[#DCEBE3] text-[#1F5A43]' },
-  { id: 'li', name: '小李', initial: '李', tone: 'bg-[#E4E6F3] text-[#3A427A]' },
-  { id: 'me', name: '我', initial: '我', tone: 'bg-[#1F5A43] text-white' },
-  { id: 'chen', name: '小陈', initial: '陈', tone: 'bg-[#F3E6D6] text-[#7A4A1C]' },
+  { id: 'lin', name: '小林', initial: '林', tone: 'bg-[#C8E43B] text-[#14301F]' },
+  { id: 'li', name: '小李', initial: '李', tone: 'bg-[#7C4DEB] text-white' },
+  { id: 'me', name: '我', initial: '我', tone: 'bg-[#183A27] text-white' },
+  { id: 'chen', name: '小陈', initial: '陈', tone: 'bg-[#F4A42C] text-[#2E1C00]' },
 ]
 
 export const memberById = (id: MemberId) => MEMBERS.find((m) => m.id === id)!

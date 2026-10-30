@@ -20,10 +20,10 @@ export function WxNavBar({
             <button
               type="button"
               onClick={onBack}
-              className="flex size-11 items-center justify-center rounded-full text-foreground active:bg-muted"
+              className="ml-1.5 flex size-10 items-center justify-center rounded-full bg-card text-foreground shadow-[0_1px_4px_rgba(20,48,31,0.12)] active:bg-muted"
               aria-label="返回"
             >
-              <ChevronLeft className="size-6" aria-hidden="true" />
+              <ChevronLeft className="size-5" aria-hidden="true" />
             </button>
           ) : (
             left

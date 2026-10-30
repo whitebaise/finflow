@@ -45,12 +45,12 @@ function MemberPicker({
               disabled={disabled}
               onClick={() => onChange(m.id)}
               className={cn(
-                'flex flex-col items-center gap-1 rounded-xl border py-2 transition-colors disabled:opacity-35',
-                selected ? 'border-primary bg-secondary' : 'border-border bg-card active:bg-muted',
+                'flex flex-col items-center gap-1 rounded-2xl border-2 py-2 transition-colors disabled:opacity-35',
+                selected ? 'border-primary bg-secondary' : 'border-transparent bg-muted active:bg-secondary',
               )}
             >
-              <Avatar id={m.id} size="sm" />
-              <span className={cn('text-[13px]', selected ? 'font-semibold text-secondary-foreground' : 'text-foreground')}>{m.name}</span>
+              <Avatar id={m.id} size="sm" className="size-9" />
+              <span className={cn('text-[13px]', selected ? 'font-bold text-foreground' : 'text-foreground')}>{m.name}</span>
             </button>
           )
         })}
@@ -102,9 +102,9 @@ export function RoomMaster() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-secondary px-4 py-3" role="status">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <PenLine className="size-4" aria-hidden="true" />
+      <div className="flex items-center gap-3 rounded-3xl border border-border bg-secondary px-4 py-3.5" role="status">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-lime">
+          <PenLine className="size-5" aria-hidden="true" />
         </span>
         <div className="min-w-0">
           <p className="text-[15px] font-semibold text-secondary-foreground">正在代记 · 记录人：我</p>
@@ -127,7 +127,7 @@ export function RoomMaster() {
           />
           <MemberPicker label="收款人（转给谁）" value={to} onChange={setTo} disabledId={from} />
           <AmountField value={value} onChange={setValue} invalid={value !== '' && cents === null} />
-          <div className="flex items-center gap-2 rounded-xl bg-muted/60 px-3 py-2.5 text-[14px]" aria-live="polite">
+          <div className="flex items-center gap-2 rounded-2xl bg-muted px-3.5 py-3 text-[14px]" aria-live="polite">
             {from && to && cents ? (
               <>
                 <span className="font-medium">{memberById(from).name}</span>

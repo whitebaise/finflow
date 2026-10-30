@@ -91,7 +91,7 @@ function MyTaskCard({ task, direction }: { task: SettlementTask; direction: 'pay
   const other = direction === 'pay' ? task.to : task.from
   const otherName = memberById(other).name
   return (
-    <li className="rounded-2xl border border-border bg-card p-4">
+    <li className="rounded-2xl bg-background p-4">
       <div className="flex items-center gap-3">
         <Avatar id={other} />
         <div className="min-w-0 flex-1">
@@ -212,7 +212,7 @@ export function SettlePage() {
         ) : (
           <>
             <div className="flex items-center justify-between">
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">牌局已结束 · 结算中</span>
+              <span className="rounded-full bg-lime px-2.5 py-0.5 text-xs font-semibold text-lime-foreground">牌局已结束 · 结算中</span>
               <span className="text-[13px] tabular-nums text-muted-foreground">{`已完成 ${done}/${tasks.length}`}</span>
             </div>
             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuemin={0} aria-valuemax={tasks.length} aria-valuenow={done} aria-label="结算完成进度">

@@ -18,24 +18,35 @@ export function RoomPersonal({ onViewAll }: { onViewAll: () => void }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <section className="rounded-2xl bg-primary px-5 pb-5 pt-4 text-primary-foreground shadow-[0_8px_24px_rgba(20,70,50,0.18)]" aria-labelledby="my-net-label">
-        <div className="flex items-center justify-between">
-          <p id="my-net-label" className="text-[13px] text-primary-foreground/75">
-            我的当前净额
-          </p>
-          <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-medium">{netLabel(myNet)}</span>
+      <section className="rounded-3xl bg-lime p-4 text-lime-foreground" aria-labelledby="my-net-label">
+        <div className="flex items-start justify-between px-1 pt-1">
+          <div>
+            <p id="my-net-label" className="text-[20px] font-bold">
+              我的当前净额
+            </p>
+            <p className="mt-0.5 text-[13px] text-lime-foreground/70">
+              {myNet < 0
+                ? `账面上我需要付出 ¥${formatYuan(myNet)}`
+                : myNet > 0
+                  ? `账面上我可以收回 ¥${formatYuan(myNet)}`
+                  : '目前账面持平'}
+            </p>
+          </div>
+          <span className="rounded-full bg-lime-soft px-3 py-1 text-[13px] font-semibold">{netLabel(myNet)}</span>
         </div>
-        <p className="mt-1 text-[40px] font-bold leading-tight tabular-nums">
+        <p className="mt-3 px-1 text-[42px] font-extrabold leading-none tracking-tight tabular-nums">
           {myNet === 0 ? '¥0' : `${myNet > 0 ? '+' : '−'}¥${formatYuan(myNet)}`}
         </p>
-        <p className="mt-1 text-[13px] text-primary-foreground/75">
-          {myNet < 0
-            ? `账面上我需要付出 ¥${formatYuan(myNet)}`
-            : myNet > 0
-              ? `账面上我可以收回 ¥${formatYuan(myNet)}`
-              : '目前账面持平'}
-          {` · ${activeCount} 笔有效流水`}
-        </p>
+        <dl className="mt-4 grid grid-cols-2 rounded-2xl bg-lime-soft px-3 py-3">
+          <div className="border-r border-lime-foreground/15 pr-3">
+            <dt className="text-[12px] text-lime-foreground/70">有效流水</dt>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums">{`${activeCount} 笔`}</dd>
+          </div>
+          <div className="pl-3">
+            <dt className="text-[12px] text-lime-foreground/70">房间成员</dt>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums">{`${MEMBERS.length} 人`}</dd>
+          </div>
+        </dl>
       </section>
 
       <Card>
@@ -73,30 +84,32 @@ export function RoomPersonal({ onViewAll }: { onViewAll: () => void }) {
         </ul>
       </Card>
 
-      <Card>
-        <SectionHeader
-          title="最近记录"
-          action={
-            records.length > 0 && (
-              <button type="button" onClick={onViewAll} className="-mr-2 flex h-8 items-center rounded-full px-2 text-[13px] text-primary active:bg-muted">
-                查看全部
-                <ChevronRight className="size-4" aria-hidden="true" />
-              </button>
-            )
-          }
-        />
+      <section aria-labelledby="recent-title" className="pt-1">
+        <div className="mb-2.5 flex min-h-8 items-center justify-between px-1">
+          <h2 id="recent-title" className="text-[16px] font-bold">
+            最近记录
+          </h2>
+          {records.length > 0 && (
+            <button type="button" onClick={onViewAll} className="-mr-2 flex h-8 items-center rounded-full px-2 text-[13px] font-semibold active:bg-muted">
+              查看全部
+              <ChevronRight className="size-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
         {recent.length === 0 ? (
-          <EmptyRecords />
+          <Card>
+            <EmptyRecords />
+          </Card>
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="flex flex-col gap-2.5">
             {recent.map((r) => (
-              <li key={r.id} className="py-3 first:pt-0 last:pb-0">
+              <li key={r.id} className="rounded-2xl bg-card px-3.5 py-3 shadow-[0_1px_3px_rgba(20,48,31,0.06)]">
                 <RecordRow record={r} />
               </li>
             ))}
           </ul>
         )}
-      </Card>
+      </section>
 
       <RecordSheet toId={target} onClose={() => setTarget(null)} />
     </div>
